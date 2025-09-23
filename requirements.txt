@@ -1,0 +1,20 @@
+celery # for distributed task queue
+flask # for web framework
+yolo_detector  # custom package for YOLO object detection
+redis  # for in-memory data structure store
+base64  # for encoding and decoding binary data
+opencv-python  # OpenCV for image processing
+numpy  # for numerical operations
+logging  # for logging
+ultralytics  # for YOLO model handling
+time  # for time-related functions
+json  # for JSON operations
+
+# celery
+# redis
+# opencv-python-headless
+# ultralytics
+# easyocr
+# pymongo
+# numpy
+# torch
