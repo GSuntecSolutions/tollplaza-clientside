@@ -8,6 +8,8 @@ import numpy as np
 import time
 import os
 from datetime import datetime, timezone
+import threading
+import subprocess
 
 
 
@@ -21,7 +23,10 @@ logger = logging.getLogger(__name__)
 # Directory to save images
 
 IMAGE_ROOT = "/shared/images"  # NFS mounted path
-
+VIDEO_ROOT = "/shared/videos"
+# Ensure dirs exist
+os.makedirs(IMAGE_ROOT, exist_ok=True)
+os.makedirs(VIDEO_ROOT, exist_ok=True)
 
 # --- Celery Setup ---
 # Use Redis on server A
@@ -31,8 +36,7 @@ celery = Celery(
     backend='redis://101.53.132.75:6379/0'
 )
 
-# --- Results Redis (optional reuse) ---
-# result_redis = redis.Redis(host='101.53.132.75', port=6379, db=0, decode_responses=True)
+
 # --- Client to send back to Machine A ---
 saver_client = Celery(
     'saver_client',
@@ -55,13 +59,29 @@ def process_frame(message_str):
 
         # Run detection
         detections = detect_vehicles(frame)
-      
+        if detections and message["laneNo"] not in active_recordings:
+           print(f"🚗 Vehicle detected on lane {message['laneNo']} → starting 30s recording")
+           active_recordings[message["laneNo"]] = True
+
+        # Start recording in background thread
+           threading.Thread(
+                target=start_video_recorder,
+                args=(message["laneNo"], message["rtsp_url"]),
+                daemon=True
+            ).start()
+
+        # Mark as recording
+        # active_recordings[message["laneNo"]] = True
+
+    # After 30s, auto-remove flag
+
+
        # Extract path
         img_path = message["image_path"]  # e.g., /images/101/2/2025-09-22/vehicle_123.jpg
         full_path = IMAGE_ROOT + img_path  # → /shared/images/images/...
-
-        # Ensure dir exists
         os.makedirs(os.path.dirname(full_path), exist_ok=True)
+       
+     
 
             # Save image
         cv2.imwrite(full_path, frame)
@@ -85,8 +105,9 @@ def process_frame(message_str):
             "io": message["io"],
             "confidence": detections[0]["confidence"] if detections else None,
             "processed_at": time.time(), 
-             "image_url": img_path # Relative path
-        }
+             "image_url": img_path, # Relative path
+             "video_url": f"/videos/{message["laneNo"]}/{int(time.time())}.mp4"  # Predicted path
+     }
         print("📥 Full result keys:", list(result.keys()))
 
      # ✅ Send result back to Machine A's saver
@@ -102,3 +123,49 @@ def process_frame(message_str):
     except Exception as e:
         logger.error(f"❌ Error: {e}", exc_info=True)
         raise
+
+
+# Global dictionary to manage ongoing recordings per lane
+active_recordings = {}
+
+def start_video_recorder(lane_no, rtsp_url, duration=12):
+    """
+    Start recording a video from RTSP stream for N seconds.
+    Saves to /shared/videos/
+    """
+    try:
+        # Generate filename
+        timestamp = int(time.time())
+        video_dir = f"{VIDEO_ROOT}/{lane_no}"
+        os.makedirs(video_dir, exist_ok=True)
+        video_path = f"{video_dir}/{timestamp}.mp4"
+
+        logger.info(f"📹 Starting 30s recording for lane {lane_no} → {video_path}")
+
+        # Use FFmpeg (more reliable than OpenCV for video)
+        command = [
+            'ffmpeg',
+            '-y',  # Overwrite
+            '-rtsp_transport', 'tcp',
+            '-i', rtsp_url,
+            '-t', str(duration),  # Duration
+            '-c:v', 'libx264',
+            '-preset', 'ultrafast',
+            '-crf', '23',
+            '-an',  # No audio
+            video_path
+        ]
+        
+        try:
+            result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=duration + 5)
+            if result.returncode == 0:
+                print(f"📹 Saved 30s clip: {video_path}")
+            else:
+                print(f"❌ FFmpeg error: {result.stderr.decode()}")
+        except Exception as e:
+            print(f"❌ Recording failed: {e}")
+
+    except Exception as e:
+        logger.error(f"❌ Error: {e}", exc_info=True)
+        raise
+        logger.info("🔍 Running vehicle detection...")  

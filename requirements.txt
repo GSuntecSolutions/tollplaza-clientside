@@ -9,6 +9,8 @@ logging  # for logging
 ultralytics  # for YOLO model handling
 time  # for time-related functions
 json  # for JSON operations
+ffmpeg # for video processing
+
 
 # celery
 # redis
