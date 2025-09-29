@@ -8,11 +8,14 @@ services:
       dockerfile: Dockerfile.detector
     runtime: nvidia
     environment:
-      - LANE_ID= 2
-      - RTSP_URL= "rtsp://nhai_ramayana:hisar@123@112.133.217.145:554/cam/realmonitor?channel=2&subtype=0"
-      - TOLL_ID= 2
-      - LOCATION= "Mumbai"
+    - LANE_ID=2
+      - RTSP_URL=rtsp://nhai_ramayana:hisar@123@112.133.217.145:554/cam/realmonitor?channel=2&subtype=0
+      - TOLL_ID=2
+      - LOCATION=Mumbai
       - REDIS_HOST=101.53.132.75
+      - MONGODB_HOST=101.53.132.75:27018
+      - MONGODB_USERNAME=admin
+      - MONGODB_PASSWORD=admin123
       # - LANE_ID=${LANE_ID}
       # - RTSP_URL=${RTSP_URL}
       # - TOLL_ID=${TOLL_ID}
@@ -21,3 +24,11 @@ services:
     volumes:
       - /shared:/shared
     network_mode: host
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped

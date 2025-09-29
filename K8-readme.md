@@ -27,6 +27,16 @@ celery -A app.core_celeryworker1.celery_work1 worker --loglevel=info
 6. run command `sudo pip install -r requirements.txt`
 7. Run command `pip install -e .`
 
+# V2 --version -----------with docker 
+1. git pull 
+2. docker build -f Dockerfile.detector -t toll-detector .
+3. docker compose up -d   
+            docker compose down 
+4. docker ps # if process is no started then check logs
+5. docker logs firstbackend-detector-1
+6.  docker exec -it firstbackend-detector-1 /bin/bash
+7.          celery -A app.core_celeryworker1.celery_work1 worker --loglevel=info
+<!--for refer- app# celery -A app.core_celeryworker1.celery_work1 worker --loglevel=info -->
 
 
 

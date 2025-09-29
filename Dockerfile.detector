@@ -35,8 +35,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Install your local package (from source code copied above)
-RUN pip install .
+# RUN pip install .
+# Install the package in editable mode (so imports work)
+RUN pip install -e .
 
-ENV PYTHONPATH=/app
+# ENV PYTHONPATH=/app
+
+# Expose shared volume for images/videos
+VOLUME ["/shared"]
 
 CMD ["celery", "-A", "app.core_celeryworker1.celery_work1", "worker", "--loglevel=info"]
