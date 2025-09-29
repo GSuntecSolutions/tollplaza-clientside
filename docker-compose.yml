@@ -1,0 +1,23 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  detector:
+    build: 
+      context: .
+      dockerfile: Dockerfile.detector
+    runtime: nvidia
+    environment:
+      - LANE_ID= 2
+      - RTSP_URL= "rtsp://nhai_ramayana:hisar@123@112.133.217.145:554/cam/realmonitor?channel=2&subtype=0"
+      - TOLL_ID= 2
+      - LOCATION= "Mumbai"
+      - REDIS_HOST=101.53.132.75
+      # - LANE_ID=${LANE_ID}
+      # - RTSP_URL=${RTSP_URL}
+      # - TOLL_ID=${TOLL_ID}
+      # - LOCATION=${LOCATION}
+      # - REDIS_HOST=101.53.132.75
+    volumes:
+      - /shared:/shared
+    network_mode: host

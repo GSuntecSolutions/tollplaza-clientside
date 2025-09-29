@@ -1,7 +1,9 @@
 🖥️ Machine B (GPU): Export Image Directory via NFS:-->
 1.    `sudo apt update && sudo apt install nfs-kernel-server -y ` # install nfs 
 2.    `sudo mkdir -p /shared/images`    # create image directory 
+               `sudo mkdir -p /shared/videos`    # create image directory 
 3.    `sudo chown nobody:nogroup /shared/images` or `sudo chown $(whoami):$(whoami) /shared/videos`
+                `sudo chown nobody:nogroup /shared/images` or `sudo chown $(whoami):$(whoami) /shared/videos`
 4.    `sudo chmod 777 /shared/images`
 
 5.   ` echo "/shared/images 101.53.132.75(rw,sync,no_subtree_check)" | sudo tee -a /etc/exports  `  

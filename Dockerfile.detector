@@ -1,14 +1,41 @@
 # Dockerfile.detector
 # FROM pytorch/pytorch:2.3.0-cuda118-cudnn8-runtime  #: not working 
 # FROM nvcr.io/nvidia/pytorch:23.10-py3  # : working
-FROM pytorch/pytorch:2.1.2-cuda12.1-cudnn8-runtime
+# FROM pytorch/pytorch:2.1.2-cuda12.1-cudnn8-runtime
+# FROM pytorch/pytorch:2.4.0-cuda12.1-cudnn9-runtime
+# FROM python:3.12.4-slim
+
+# WORKDIR /app
+
+# COPY requirements.txt .
+# RUN apt-get update && apt-get install -y libglib2.0-0 libsm6 libxrender1 libxext6 libgl1-mesa-glx
+# RUN pip install --no-cache-dir -r requirements.txt
+# RUN pip install .
+
+# COPY . .
+
+# ENV PYTHONPATH=/app
+
+# CMD ["celery", "-A", "app.core_celeryworker1.celery_work1", "worker", "--loglevel=info"]
+
+FROM python:3.12.4-slim
 
 WORKDIR /app
 
+# Install system dependencies first
+RUN apt-get update && apt-get install -y libglib2.0-0 libsm6 libxrender1 libxext6 libgl1-mesa-glx
+
+# Copy only requirements first for leveraging Docker cache
 COPY requirements.txt .
+
+# Install Python dependencies from requirements.txt except local packages
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy your entire source code (including local packages like firstbackend)
 COPY . .
+
+# Install your local package (from source code copied above)
+RUN pip install .
 
 ENV PYTHONPATH=/app
 

@@ -106,7 +106,7 @@ def process_frame(message_str):
             "confidence": detections[0]["confidence"] if detections else None,
             "processed_at": time.time(), 
              "image_url": img_path, # Relative path
-             "video_url": f"/videos/{message["laneNo"]}/{int(time.time())}.mp4"  # Predicted path
+             "video_url": f"/videos/{message['laneNo']}/{int(time.time())}.mp4"  # Predicted path
      }
         print("📥 Full result keys:", list(result.keys()))
 
