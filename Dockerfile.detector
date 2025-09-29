@@ -1,0 +1,15 @@
+# Dockerfile.detector
+# FROM pytorch/pytorch:2.3.0-cuda118-cudnn8-runtime  #: not working 
+# FROM nvcr.io/nvidia/pytorch:23.10-py3  # : working
+FROM pytorch/pytorch:2.1.2-cuda12.1-cudnn8-runtime
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+ENV PYTHONPATH=/app
+
+CMD ["celery", "-A", "app.core_celeryworker1.celery_work1", "worker", "--loglevel=info"]
